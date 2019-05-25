@@ -4,6 +4,8 @@ const search =require('yt-search');
 require('dotenv/config');
 const http= require('http');
 const port = process.env.PORT || 3000;
+//server
+http.createServer().listen(port);
 
 const bot = new discord.Client();
 
@@ -111,6 +113,9 @@ bot.on('message',async msg=>{
         msg.channel.send(embed);
 
     }
+})
+bot.on('error', err=>{
+    console.log(err);
 })
 async function playSong(messageChannel,voiceConnection,VoiceChannel){
     const stream=ytdl(datas.musicUrls[0],{filter: 'audioonly'});
