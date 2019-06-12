@@ -174,6 +174,7 @@ async function playSong(messageChannel,voiceConnection,VoiceChannel,reset){
         datas.numUrls=0;
         datas.musicTitles=[];
         datas.musicUrls=[];
+        return;
     }
     const stream=ytdl(datas.musicUrls[0],{filter: 'audioonly'});
     const dispatcher = voiceConnection.playStream(stream,streamOptions);
