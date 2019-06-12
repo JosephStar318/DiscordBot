@@ -67,7 +67,7 @@ bot.on('message',async msg=>{
         });
         async function play(url,Title){
         datas.musicTitles.push(Title);
-        datas.VoiceChannel = msg.guild.channels.find(channel => channel.id ==='495617782939910149');
+        datas.VoiceChannel = msg.guild.channels.find(channel => channel.id ==='509009367065034775');
         if(ytdl.validateURL(url)){
             console.log('valid url');
             var flag = datas.musicUrls.some(element=>element===url);
