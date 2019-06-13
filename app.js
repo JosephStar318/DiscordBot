@@ -85,7 +85,12 @@ bot.on('message',async msg=>{
                     }
                     else{
                         try{
-                            datas.voiceConnection= await datas.VoiceChannel.join();
+                            datas.voiceConnection = await datas.VoiceChannel.join();
+                            // if(datas.voiceConnection===null){
+                            //     datas.numUrls=0;
+                            //     datas.musicUrls=[];
+                            //     return;
+                            // }
                             console.log("bot müzik çalmak için katıldı");
                             await playSong(msg.channel,datas.voiceConnection,datas.VoiceChannel,0);
                             embed.setAuthor(bot.user.username,bot.user.displayAvatarURL);
@@ -116,7 +121,6 @@ bot.on('message',async msg=>{
             embed.setAuthor(bot.user.username,bot.user.displayAvatarURL);
             embed.setDescription(`Şuan çalan şarkı ${datas.musicTitles[0]}`);
             if(datas.numUrls>0) msg.channel.send(embed);
-            else msg.channel.send("Tüm şarkılar bitti dostum.");
         }
     }
     if(msg.content.split(' ')[0]==='!playlist'){
@@ -156,56 +160,59 @@ bot.on('message',async msg=>{
     }
     if(msg.content.split(' ')[0]==='!reset'){
         playSong(msg.channel,datas.voiceConnection,datas.VoiceChannel,1);
-        playSong(msg.channel,datas.voiceConnection,datas.VoiceChannel,1);
     }
+
+
+
     // if(msg.content.split(' ')[0]==='!set'){
     //     var user=msg.content.split(" ").splice(1,1);//dizi
     //     var input=msg.content.split(" ").slice(2,10).join(" ");//string
     //     console.log(GuildMember.nickname);
     //     console.log(user,input);
     // }         WIP
+
+
+
+    async function playSong(messageChannel,voiceConnection,VoiceChannel,reset){
+        if(reset){
+            VoiceChannel.leave();
+            datas.numUrls=0;
+            datas.musicTitles=[];
+            datas.musicUrls=[];
+            return;
+        }
+        const stream=ytdl(datas.musicUrls[0],{filter: 'audioonly'});
+        const dispatcher = voiceConnection.playStream(stream,streamOptions);
     
+        if(datas.skip===true){
+            console.log("Şarkı sonlandı");
+            dispatcher.end("ended");
+            datas.skip=false;
+        }
+    
+        dispatcher.on('end',()=>{
+            console.log("sonlanan şarkı buraya geldi.");
+    
+        if(datas.musicUrls.length-1==0){
+            console.log("bütün şarkılar bitti.");
+            msg.channel.send("Tüm şarkılar bitti dostum.");
+            VoiceChannel.leave();
+            console.log("bot kanaldan ayrıldı.");
+            datas.musicUrls.shift();
+            datas.musicTitles.shift();
+            datas.numUrls--;
+        }else{
+            console.log("sonraki şarkıya geçiliyor.");
+            datas.musicUrls.shift();
+            datas.musicTitles.shift();
+            datas.numUrls--;
+            setTimeout(()=>{
+                playSong(messageChannel,voiceConnection,VoiceChannel,0);
+            },2000);
+        }
+        })
+    }
 })
 bot.on('error', err=>{
     console.log(err);
 })
-async function playSong(messageChannel,voiceConnection,VoiceChannel,reset){
-    if(reset){
-        voiceConnection.disconnect();
-        datas.numUrls=0;
-        datas.musicTitles=[];
-        datas.musicUrls=[];
-        return;
-    }
-    const stream=ytdl(datas.musicUrls[0],{filter: 'audioonly'});
-    const dispatcher = voiceConnection.playStream(stream,streamOptions);
-
-    if(datas.skip===true){
-        console.log("Şarkı sonlandı");
-        dispatcher.end("ended");
-        datas.skip=false;
-    }
-
-    dispatcher.on('end',()=>{
-
-    if(datas.musicUrls.length-1==0){
-        console.log("bütün şarkılar bitti.");
-        msg.channel.send("Tüm şarkılar bitti dostum.");
-        VoiceChannel.leave();
-        console.log("bot kanaldan ayrıldı.");
-        datas.musicUrls.shift();
-        datas.musicTitles.shift();
-        datas.numUrls--;
-    }
-
-    else{
-        console.log("sonraki şarkıya geçiliyor.");
-        datas.musicUrls.shift();
-        datas.musicTitles.shift();
-        datas.numUrls--;
-        setTimeout(()=>{
-            playSong(messageChannel,voiceConnection,VoiceChannel,0);
-        },2000);
-    }
-    })
-}
