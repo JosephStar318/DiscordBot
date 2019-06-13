@@ -192,6 +192,7 @@ async function playSong(messageChannel,voiceConnection,VoiceChannel,reset){
         console.log("bütün şarkılar bitti.");
         msg.channel.send("Tüm şarkılar bitti dostum.");
         VoiceChannel.leave();
+        console.log("bot kanaldan ayrıldı.");
         datas.musicUrls.shift();
         datas.musicTitles.shift();
         datas.numUrls--;
