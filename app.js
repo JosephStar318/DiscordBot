@@ -161,9 +161,11 @@ bot.on('message',async msg=>{
         3)!play => youtube şarkı araması yapar ardından istediğin şarkının numarasını gir.\n
         4)!playlist => oynatma listesini gösterir.\n
         5)!skip => istenilen şarkıyı geçer.\n
-        6)!reset => botu resetler.\n
-        7)!hot => yazı tura.\n
-        8)!dice => 2'li zar atar.`);
+        6)!pause => müziği durdurur.\n
+        7)!resume =>  müziğe tam gaz devam eder.\n
+        8)!reset => botu resetler.\n
+        9)!hot => yazı tura.\n
+        10)!dice => 2'li zar atar.`);
         msg.channel.send(embed);
     }
     if(msg.content.split(' ')[0]==='!dice'){
