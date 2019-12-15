@@ -15,8 +15,11 @@ const streamOptions = { seek: 0, volume: 1 };
 var datas={
     VoiceChannel:null,
     voiceConnection:null,
+    stream:null,
+    dispatcher:null,
     musicUrls:[],
     musicTitles:[],
+    timestamps:[],
     numUrls:0,
     skip: false,
 }
@@ -45,29 +48,50 @@ bot.on('message',async msg=>{
             let videos = res.videos.slice(0,5);
             var response=[];
             for(i=0;i<videos.length;i++){
-                 response[i] = `\n${i+1}) ${videos[i].title}`;
+                 response[i] = `\n**${i+1})** ${videos[i].title} **[${videos[i].timestamp}]**`;
             }
+            response[i]=`\n**İPTAL ETMEK İÇİN 0 GİRİN WIP!!!!!**`;
             embed.setAuthor(bot.user.username,bot.user.displayAvatarURL);
             embed.setDescription(response);
             msg.channel.send(embed);
 
             msg.channel.send('**HANGİSİNİ SEÇEYİM?**');
             // if(isNaN(msg.content)) return;
-            const filter = m =>!isNaN(m.content) && m.content>0 && m.content<videos.length+1;
+            const filter = m =>(!isNaN(m.content) && parseInt(m.content)>=0 && m.content<videos.length+1);
             const collector = msg.channel.createMessageCollector(filter);
             collector.videos=videos;
 
             collector.once('collect',function(m){
-                let url=this.videos[parseInt(m.content)-1].url;
-                url="https://www.youtube.com"+url;
-                let Title=this.videos[parseInt(m.content)-1].title;
-                console.log(Title);
-                play(url,Title);
+                console.log(m.content);
+                if(parseInt(m.content)===0){
+                    console.log(parseInt(m.content));//wıp
+                    msg.channel.send("Seçim iptal edildi");
+                    collector.stop();
+                }else{
+                    let url=this.videos[parseInt(m.content)-1].url;
+                    url="https://www.youtube.com"+url;
+                    let Title=this.videos[parseInt(m.content)-1].title;
+                    let Timestamp=this.videos[parseInt(m.content)-1].timestamp;
+                    console.log(Title);
+                    
+                    play(url,Title,Timestamp);
+                }
+                
             })
         });
-        async function play(url,Title){
+        async function play(url,Title,Timestamp){
         datas.musicTitles.push(Title);
-        datas.VoiceChannel = msg.guild.channels.find(channel => channel.id ==='509009367065034775');
+        datas.timestamps.push(Timestamp);
+        var botID=bot.user.lastMessage.member.voiceChannelID;
+        if(msg.author.lastMessage.member.voiceChannelID===botID)
+            var ID=msg.author.lastMessage.member.voiceChannelID;
+        else if(botID!==undefined && botID!==null)
+            var ID=botID;
+        else
+            var ID=msg.author.lastMessage.member.voiceChannelID;
+            
+        console.log(botID);
+        datas.VoiceChannel = msg.guild.channels.find(channel => channel.id ===ID);
         if(ytdl.validateURL(url)){
             console.log('valid url');
             var flag = datas.musicUrls.some(element=>element===url);
@@ -86,21 +110,19 @@ bot.on('message',async msg=>{
                     else{
                         try{
                             datas.voiceConnection = await datas.VoiceChannel.join();
-                            // if(datas.voiceConnection===null){
-                            //     datas.numUrls=0;
-                            //     datas.musicUrls=[];
-                            //     return;
-                            // }
                             console.log("bot müzik çalmak için katıldı");
                             await playSong(msg.channel,datas.voiceConnection,datas.VoiceChannel,0);
                             embed.setAuthor(bot.user.username,bot.user.displayAvatarURL);
-                            embed.setDescription(`Şuan çalan şarkı ${datas.musicTitles[0]}`);
+                            embed.setDescription(`Şuan çalan şarkı ${datas.musicTitles[0]} **[${datas.timestamps[0]}]**`);
                             msg.channel.send(embed);
                         }catch(ex){
                             console.log(ex);
                         }
                     }
-                }else console.log("bağlantı yok");
+                }else{
+                    console.log("bağlantı yok");
+                    msg.channel.send("Üye ses kanalında değil :(");
+                }
             }
         }}
     }
@@ -115,18 +137,16 @@ bot.on('message',async msg=>{
 
             datas.musicTitles.splice(a-1,1);
             datas.musicUrls.splice(a-1,1);
+            datas.timestamps.splice(a-1,1);
             datas.numUrls--;
         }else {
-            playSong(msg.channel,datas.voiceConnection,datas.VoiceChannel,0);
-            embed.setAuthor(bot.user.username,bot.user.displayAvatarURL);
-            embed.setDescription(`Şuan çalan şarkı ${datas.musicTitles[0]}`);
-            if(datas.numUrls>0) msg.channel.send(embed);
+            datas.dispatcher.end();
         }
     }
     if(msg.content.split(' ')[0]==='!playlist'){
         var embedList = datas.musicTitles.slice();
         for(i=0;i<datas.numUrls;i++)
-            embedList[i]=`\n${i+1}) ${embedList[i]}`;
+            embedList[i]=`\n${i+1}) ${embedList[i]} **[${datas.timestamps[i]}]**`;
         
         embed.setAuthor(bot.user.username,bot.user.displayAvatarURL);
         embed.setDescription(`**ŞARKI LİSTESİ**\n${embedList}`);
@@ -161,6 +181,15 @@ bot.on('message',async msg=>{
     if(msg.content.split(' ')[0]==='!reset'){
         playSong(msg.channel,datas.voiceConnection,datas.VoiceChannel,1);
     }
+    if(msg.content.split(' ')[0]==='!pause'){
+        console.log("müzik durduruldu.");
+        datas.dispatcher.pause();
+
+    }
+    if(msg.content.split(' ')[0]==='!resume'){
+        console.log("müziğe devam ediliyor");
+        datas.dispatcher.resume();
+    }
 
 
 
@@ -179,33 +208,35 @@ bot.on('message',async msg=>{
             datas.numUrls=0;
             datas.musicTitles=[];
             datas.musicUrls=[];
+            datas.timestamps=[];
             return;
         }
-        const stream=ytdl(datas.musicUrls[0],{filter: 'audioonly'});
-        const dispatcher = voiceConnection.playStream(stream,streamOptions);
-    
-        if(datas.skip===true){
-            console.log("Şarkı sonlandı");
-            dispatcher.end("ended");
-            datas.skip=false;
-        }
-    
-        dispatcher.on('end',()=>{
+        datas.stream=ytdl(datas.musicUrls[0],{filter: 'audioonly'});
+        datas.dispatcher = voiceConnection.playStream(datas.stream,streamOptions);
+
+        datas.dispatcher.on('end',()=>{
             console.log("sonlanan şarkı buraya geldi.");
-    
-        if(datas.musicUrls.length-1==0){
+        if(datas.musicUrls.length==1){
             console.log("bütün şarkılar bitti.");
             msg.channel.send("Tüm şarkılar bitti dostum.");
             VoiceChannel.leave();
             console.log("bot kanaldan ayrıldı.");
             datas.musicUrls.shift();
             datas.musicTitles.shift();
+            datas.timestamps.shift();
             datas.numUrls--;
-        }else{
+        }
+        else{
             console.log("sonraki şarkıya geçiliyor.");
             datas.musicUrls.shift();
             datas.musicTitles.shift();
+            console.log(datas.timestamps);
+            datas.timestamps.shift();
+            console.log(datas.timestamps);
             datas.numUrls--;
+            embed.setAuthor(bot.user.username,bot.user.displayAvatarURL);
+            embed.setDescription(`Şuan çalan şarkı ${datas.musicTitles[0]} **[${datas.timestamps[0]}]**`);
+            msg.channel.send(embed);
             setTimeout(()=>{
                 playSong(messageChannel,voiceConnection,VoiceChannel,0);
             },2000);

@@ -10,7 +10,8 @@
   "license": "ISC",
   "dependencies": {
     "discord.js": "^11.5.0",
-    "dotenv": "^8.0.0",
+    "dotenv": "^8.2.0",
+    "ffmpeg": "0.0.4",
     "goto": "^0.2.0",
     "opusscript": "0.0.6",
     "yt-search": "^0.4.1",
