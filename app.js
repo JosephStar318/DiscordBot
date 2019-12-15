@@ -50,7 +50,7 @@ bot.on('message',async msg=>{
             for(i=0;i<videos.length;i++){
                  response[i] = `\n**${i+1})** ${videos[i].title} **[${videos[i].timestamp}]**`;
             }
-            response[i]=`\n**İPTAL ETMEK İÇİN 0 GİRİN WIP!!!!!**`;
+            response[i]=`\n**İPTAL ETMEK İÇİN 0 GİRİN**`;
             embed.setAuthor(bot.user.username,bot.user.displayAvatarURL);
             embed.setDescription(response);
             msg.channel.send(embed);
