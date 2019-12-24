@@ -50,7 +50,7 @@ bot.on('message',async msg=>{
             for(i=0;i<videos.length;i++){
                  response[i] = `\n**${i+1})** ${videos[i].title} **[${videos[i].timestamp}]**`;
             }
-            response[i]=`\n**İPTAL ETMEK İÇİN 0 GİRİN**`;
+            response[i]=`\n**İPTAL ETMEK İÇİN 0 GİRİN!**`;
             embed.setAuthor(bot.user.username,bot.user.displayAvatarURL);
             embed.setDescription(response);
             msg.channel.send(embed);
@@ -94,36 +94,35 @@ bot.on('message',async msg=>{
         datas.VoiceChannel = msg.guild.channels.find(channel => channel.id ===ID);
         if(ytdl.validateURL(url)){
             console.log('valid url');
-            var flag = datas.musicUrls.some(element=>element===url);
-            if(!flag){
-                datas.musicUrls.push(url);
-                datas.numUrls++;
-                if(datas.VoiceChannel!=null){
+            
+            datas.musicUrls.push(url);
+            datas.numUrls++;
+            if(datas.VoiceChannel!=null){
 
-                    if(datas.VoiceChannel.connection){
-                        console.log('connection exist');
-                        const embed = new discord.RichEmbed();
-                        embed.setAuthor(bot.user.username,bot.user.displayAvatarURL);
-                        embed.setDescription("Şarkı listeye eklendi");
-                        msg.channel.send(embed);
-                    }
-                    else{
-                        try{
-                            datas.voiceConnection = await datas.VoiceChannel.join();
-                            console.log("bot müzik çalmak için katıldı");
-                            await playSong(msg.channel,datas.voiceConnection,datas.VoiceChannel,0);
-                            embed.setAuthor(bot.user.username,bot.user.displayAvatarURL);
-                            embed.setDescription(`Şuan çalan şarkı ${datas.musicTitles[0]} **[${datas.timestamps[0]}]**`);
-                            msg.channel.send(embed);
-                        }catch(ex){
-                            console.log(ex);
-                        }
-                    }
-                }else{
-                    console.log("bağlantı yok");
-                    msg.channel.send("Üye ses kanalında değil :(");
+                if(datas.VoiceChannel.connection){
+                    console.log('connection exist');
+                    const embed = new discord.RichEmbed();
+                    embed.setAuthor(bot.user.username,bot.user.displayAvatarURL);
+                    embed.setDescription("Şarkı listeye eklendi");
+                    msg.channel.send(embed);
                 }
+                else{
+                    try{
+                        datas.voiceConnection = await datas.VoiceChannel.join();
+                        console.log("bot müzik çalmak için katıldı");
+                        await playSong(msg.channel,datas.voiceConnection,datas.VoiceChannel,0);
+                        embed.setAuthor(bot.user.username,bot.user.displayAvatarURL);
+                        embed.setDescription(`Şuan çalan şarkı ${datas.musicTitles[0]} **[${datas.timestamps[0]}]**`);
+                        msg.channel.send(embed);
+                    }catch(ex){
+                        console.log(ex);
+                    }
+                }
+            }else{
+                console.log("bağlantı yok");
+                msg.channel.send("Üye ses kanalında değil :(");
             }
+            
         }}
     }
     if(msg.content.split(' ')[0]==='!skip'){
@@ -161,9 +160,9 @@ bot.on('message',async msg=>{
         3)!play => youtube şarkı araması yapar ardından istediğin şarkının numarasını gir.\n
         4)!playlist => oynatma listesini gösterir.\n
         5)!skip => istenilen şarkıyı geçer.\n
-        6)!pause => müziği durdurur.\n
-        7)!resume =>  müziğe tam gaz devam eder.\n
-        8)!reset => botu resetler.\n
+        6)!reset => botu resetler.\n
+        7)!pause => şarkıyı durdur.\n
+        8)!resume => şarkıyı devam ettir.\n
         9)!hot => yazı tura.\n
         10)!dice => 2'li zar atar.`);
         msg.channel.send(embed);
@@ -213,9 +212,10 @@ bot.on('message',async msg=>{
             datas.timestamps=[];
             return;
         }
+       
         datas.stream=ytdl(datas.musicUrls[0],{filter: 'audioonly'});
         datas.dispatcher = voiceConnection.playStream(datas.stream,streamOptions);
-
+        
         datas.dispatcher.on('end',()=>{
             console.log("sonlanan şarkı buraya geldi.");
         if(datas.musicUrls.length==1){
@@ -232,9 +232,7 @@ bot.on('message',async msg=>{
             console.log("sonraki şarkıya geçiliyor.");
             datas.musicUrls.shift();
             datas.musicTitles.shift();
-            console.log(datas.timestamps);
             datas.timestamps.shift();
-            console.log(datas.timestamps);
             datas.numUrls--;
             embed.setAuthor(bot.user.username,bot.user.displayAvatarURL);
             embed.setDescription(`Şuan çalan şarkı ${datas.musicTitles[0]} **[${datas.timestamps[0]}]**`);

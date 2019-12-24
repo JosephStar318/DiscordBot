@@ -1,5 +1,4 @@
 # node-ytdl-core
-[![Build Status](https://secure.travis-ci.org/fent/node-ytdl-core.svg)](http://travis-ci.org/fent/node-ytdl-core)
 [![Dependency Status](https://david-dm.org/fent/node-ytdl-core.svg)](https://david-dm.org/fent/node-ytdl-core)
 [![codecov](https://codecov.io/gh/fent/node-ytdl-core/branch/master/graph/badge.svg)](https://codecov.io/gh/fent/node-ytdl-core)
 [![Discord](https://img.shields.io/discord/484464227067887645.svg)](https://discord.gg/V3vSCs7)
@@ -68,6 +67,10 @@ Emitted when the video response has been found and has started downloading or af
 
 Emitted whenever a new chunk is received. Passes values describing the download progress.
 
+### Stream#destroy()
+
+Call to abort and stop downloading a video.
+
 ### ytdl.getBasicInfo(url, [options], [callback(err, info)])
 
 Use this if you only want to get metainfo from a video. If `callback` isn't given, returns a promise.
@@ -133,6 +136,8 @@ ytdl cannot download videos that fall into the following
 
 YouTube intentionally ratelimits downloads, likely to prevent bandwidth abuse. The download rate is still faster than a media player can play the video, even on 2x. See [#294](https://github.com/fent/node-ytdl-core/issues/294).
 
+Generated download links are valid for 6 hours, for the same IP address.
+
 ## Handling Separate Streams
 
 Typically 1080p or better video does not have audio encoded with it. The audio must be downloaded separately and merged via an appropriate encoding library. `ffmpeg` is the most widely used tool, with many [Node.js modules available](https://www.npmjs.com/search?q=ffmpeg). Use the `format` objects returned from `ytdl.getInfo` to download specific streams to combine to fit your needs. Look at [example/ffmpeg.js](example/ffmpeg.js) for an example on doing this.
@@ -157,13 +162,15 @@ For getting started with that, you can look at the `extractActions()` function i
 # Install
 
 ```bash
-npm install ytdl-core
+npm install ytdl-core@latest
 ```
 
 Or for Yarn users:
 ```bash
-yarn add ytdl-core
+yarn add ytdl-core@latest
 ```
+
+If you're using a bot or app that uses ytdl-core, it may be dependent on an older version. Make sure you're installing the latest version of ytdl-core to keep up with the latest fixes.
 
 # Tests
 Tests are written with [mocha](https://mochajs.org)
